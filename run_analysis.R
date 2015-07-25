@@ -1,5 +1,6 @@
-run_analysis <- function() {
+run_analysis <- function(tidymain = "./main.txt", tidyaverages = "./averages.txt") {
   library(data.table)
+  library(reshape2)
   
   # get variable names
   variables <- read.table("./UCI HAR Dataset/features.txt")[,2]
@@ -35,17 +36,20 @@ run_analysis <- function() {
   neatnames <- lapply(colnames(target), decode)
   
   # attach activity and subject labels
-  print(str(target))
   target <- cbind(subjects, unlist(neatactivities), target)
-  print(str(target))
   setnames(target, c("Subject", "Activity", unlist(neatnames)))
   
-  return(target)
+  # save main tidy dataset to disk
+  write.table(target, tidymain)
+  
+  # build averages dataset and save
+  melted = melt(target, id.vars=c("Subject", "Activity"))
+  cast = dcast(melted, Subject + Activity ~ variable, mean)
+  write.table(cast, tidyaverages)
 }
 
 ## This helper function makes variables readable
 decode <- function(label) {
-  
   # detect whether mean or standard deviation
   measure <- ""
   if(grepl("mean", label)) {
