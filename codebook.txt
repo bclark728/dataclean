@@ -1,0 +1,32 @@
+The variables in the tables produced by the run_analysis() script have been
+translated to make them human-readable.
+
+Variables begin either:
+- Body. Which means the portion of the data attributable to body movement. It 
+        it was distinguished from the portion due to gravity using a high-pass
+	filter.
+OR
+- Gravity. Which means the portion of the data attributable to gravity
+
+Next the variable names include a description of the quantity measured. These
+can include:
+- Acceleration. As measured by the phone's accelerometer.
+- Acceleration.Jerk. This is the derivative of acceleration.
+- Gyroscopic. Angular momentum as measured by the phone's gyroscope.
+- Gyroscopic.Jerk. This is the derivative of angular momentum.
+
+Next the variable names include a description of the measurement. Either:
+- StandardDeviation
+OR
+- Mean
+
+Next the variable names include a description of the dimension of the
+measurement. It is one of:
+- XAxis
+- YAxis
+- ZAxis
+or
+- Magnitude, which indicates a scalar
+
+Finally, the variable name indicates whether the measurement is expressed in
+the time domain or in the frequency domain.

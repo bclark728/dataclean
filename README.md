@@ -20,3 +20,5 @@ Both files can be read into R with read.table().
 
 The variable summary will be filled with a data.table containing the data written to averages.txt
 
+A codebook of the variables used in this dataset can be found as a part of this repo,
+codebook.txt
