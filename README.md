@@ -7,8 +7,8 @@ angular momentum and acceleration data collected from a variety of subjects perf
 
 To run the script, simply:
 1. Clone it into the same directory as the downloaded .zip file. Unzip the file using (on Linux):
-  unzip getdata-projectfiles-UCI\ HAR\ Dataset.zip 
-  * Alternatively, use a zip program of your choice, but make sure the data files are     unzipped to a subdirectory called "UCI HAR Dataset."
+>unzip getdata-projectfiles-UCI\ HAR\ Dataset.zip 
+Alternatively, use a zip program of your choice, but make sure the data files are     unzipped to a subdirectory called "UCI HAR Dataset."
 2. open R
 3. call source("run_analysis.R")
 4. summary <- run_analysis()
