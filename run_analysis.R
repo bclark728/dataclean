@@ -1,3 +1,19 @@
+##
+# run_analysis.R
+#
+#  a script for cleaning and summarizing accelerometer and gyroscope data
+##
+
+# run_analysis()
+#  optional arguments:
+#   - tidymain: path to output a table.read()-readable data.table that contains all
+#               the combined data from the test and train data subsets
+#   - tidyaverages: path to output a table.read()-readable data.table that contains
+#                   averaged values for all variables, sorted by test subject and 
+#                   activity
+#  returns:
+#   - a data.table containing the average data
+
 run_analysis <- function(tidymain = "./main.txt", tidyaverages = "./averages.txt") {
   library(data.table)
   library(reshape2)
@@ -5,12 +21,10 @@ run_analysis <- function(tidymain = "./main.txt", tidyaverages = "./averages.txt
   # get variable names
   variables <- read.table("./UCI HAR Dataset/features.txt")[,2]
   
-  # read x&y variables and activity&subject labels from test subset
+  # read x&y variables and subject labels from test subset
   testX <- read.table("./UCI HAR Dataset/test/X_test.txt")
   testY <- read.table("./UCI HAR Dataset/test/y_test.txt")
   testS <- read.table("./UCI HAR Dataset/test/subject_test.txt")
-  
-  # bind into common dataframe 
   setnames(testX, as.vector(variables))
 
   # same steps for training subset
@@ -24,13 +38,12 @@ run_analysis <- function(tidymain = "./main.txt", tidyaverages = "./averages.txt
   activities <- rbind(testY, trainY)
   subjects   <- rbind(testS, trainS)
   
+  # translate numeric activity labels into human-readable
   neatactivities <- lapply(unlist(activities), translate)
   
-  #clean up
-  rm(testX, testY, trainX, trainY)
-  
   # extract target variables
-  target <- table[, c(1, grep("mean()", colnames(table)), grep("std()", colnames(table)))]
+  target <- table[, c(1, grep("mean()", colnames(table)), grep("std()", 
+                                                               colnames(table)))]
   
   # translate column names
   neatnames <- lapply(colnames(target), decode)
@@ -40,12 +53,15 @@ run_analysis <- function(tidymain = "./main.txt", tidyaverages = "./averages.txt
   setnames(target, c("Subject", "Activity", unlist(neatnames)))
   
   # save main tidy dataset to disk
-  write.table(target, tidymain)
+  write.table(target, tidymain, row.names = FALSE)
   
   # build averages dataset and save
   melted = melt(target, id.vars=c("Subject", "Activity"))
   cast = dcast(melted, Subject + Activity ~ variable, mean)
-  write.table(cast, tidyaverages)
+  write.table(cast, tidyaverages, row.names = FALSE)
+  
+  # return data.table
+  return(data.table(cast))
 }
 
 ## This helper function makes variables readable
@@ -66,11 +82,11 @@ decode <- function(label) {
   # detect domain
   domain <- ""
   if(substr(label, 1, 1) == "t") {
-    domain <- "Time"
+    domain <- "TimeDomain"
   }
   else
   if(substr(label, 1, 1) == "f") {
-    domain <- "Frequency"
+    domain <- "FrequencyDomain"
   }
   else {
     stop(paste("ERROR! No valid domain in: ", label))
@@ -100,32 +116,36 @@ decode <- function(label) {
   if(grepl("Jerk", label)) {
     quantity <- append(quantity, "Jerk")
   }
-  if(grepl("Mag", label)) {
-    quantity <- append(quantity, "Magnitude")
-  }
   # join into string
   quant <- paste(quantity, collapse = ".")
   
   # detect dimension tag, if present
   dimension <- ""
   if(grepl("-X", label)) {
-    dimension <- "X"
+    dimension <- "XAxis"
   }
   else
   if(grepl("-Y", label)) {
-    dimension <- "Y"
+    dimension <- "YAxis"
   }
   else
   if(grepl("-Z", label)) {
-    dimension <- "Z"
+    dimension <- "ZAxis"
+  }
+  else
+  if(grepl("Mag", label)) {
+    dimension <- "Magnitude"
+  }
+  else {
+    stop(paste0("ERROR! No valid dimension in: ", label))
   }
   
-  ret <- paste(component, quant, measure, paste0(dimension, "Axis"), 
-               paste0(domain, "Domain"), sep = ".")
+  ret <- paste(component, quant, measure, dimension, domain, sep = ".")
   
   return(ret)
 }
 
+## this is a helper function to make activity names human readable
 translate <- function(label) {
   # get descriptive activity labels
   activitylabels <- read.table("./UCI HAR Dataset/activity_labels.txt")[,2]
