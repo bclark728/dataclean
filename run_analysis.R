@@ -1,40 +1,46 @@
 run_analysis <- function() {
   library(data.table)
   
-  # get descriptive activity labels
-  activitylabels <- read.table("./UCI HAR Dataset/activity_labels.txt")[,2]
-  
   # get variable names
   variables <- read.table("./UCI HAR Dataset/features.txt")[,2]
   
-  # read x&y variables from test subset
+  # read x&y variables and activity&subject labels from test subset
   testX <- read.table("./UCI HAR Dataset/test/X_test.txt")
   testY <- read.table("./UCI HAR Dataset/test/y_test.txt")
+  testS <- read.table("./UCI HAR Dataset/test/subject_test.txt")
   
-  # bind into common dataframe and translate numeric to descriptive labels
-  test  <- cbind(activitylabels[unlist(testY)], testX)
-  setnames(test, c("Activity", as.vector(variables)))
+  # bind into common dataframe 
+  setnames(testX, as.vector(variables))
 
   # same steps for training subset
   trainX <- read.table("./UCI HAR Dataset/train/X_train.txt")
   trainY <- read.table("./UCI HAR Dataset/train/y_train.txt")
-  train  <- cbind(activitylabels[unlist(trainY)], trainX)
-  setnames(train, c("Activity", as.vector(variables)))
+  trainS <- read.table("./UCI HAR Dataset/train/subject_train.txt")
+  setnames(trainX, as.vector(variables))
   
   # build a data table by merging test and train subsets
-  table  <- rbind(test, train)
+  table      <- rbind(testX, trainX)
+  activities <- rbind(testY, trainY)
+  subjects   <- rbind(testS, trainS)
+  
+  neatactivities <- lapply(unlist(activities), translate)
   
   #clean up
-  rm(testX, testY, test, trainX, trainY, train)
+  rm(testX, testY, trainX, trainY)
   
   # extract target variables
-  target <- table[, c(grep("mean()", colnames(table)), grep("std()", colnames(table)))]
+  target <- table[, c(1, grep("mean()", colnames(table)), grep("std()", colnames(table)))]
   
-  #translate column names
-  neatnames = lapply(colnames(target), decode)
-  setnames(target, unlist(neatnames))
+  # translate column names
+  neatnames <- lapply(colnames(target), decode)
   
-  target
+  # attach activity and subject labels
+  print(str(target))
+  target <- cbind(subjects, unlist(neatactivities), target)
+  print(str(target))
+  setnames(target, c("Subject", "Activity", unlist(neatnames)))
+  
+  return(target)
 }
 
 ## This helper function makes variables readable
@@ -94,9 +100,7 @@ decode <- function(label) {
     quantity <- append(quantity, "Magnitude")
   }
   # join into string
-    quant <- paste(quantity, collapse = ".")
-    print(label)
-    print(quant)
+  quant <- paste(quantity, collapse = ".")
   
   # detect dimension tag, if present
   dimension <- ""
@@ -115,7 +119,12 @@ decode <- function(label) {
   ret <- paste(component, quant, measure, paste0(dimension, "Axis"), 
                paste0(domain, "Domain"), sep = ".")
   
-  print(ret)
-  print("===============================")
   return(ret)
+}
+
+translate <- function(label) {
+  # get descriptive activity labels
+  activitylabels <- read.table("./UCI HAR Dataset/activity_labels.txt")[,2]
+  
+  return(activitylabels[label])
 }
