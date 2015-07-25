@@ -6,6 +6,7 @@ angular momentum and acceleration data collected from a variety of subjects perf
 (get data here: https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip)
 
 To run the script, simply:
+
 1. Clone it into the same directory as the downloaded .zip file. Unzip the file using (on Linux):
 
 >unzip getdata-projectfiles-UCI\ HAR\ Dataset.zip 
